@@ -25,20 +25,19 @@ const userSchema = new mongoose.Schema({
 })
 
 // userSchema.pre("save", function(next) means jab v hum userschema me save kare ge to ek function run hoga
-userSchema.pre("save",async function(next){
+userSchema.pre("save",async function(){
     console.log("running before save");
 
     if(!this.isModified("password")){
-        return next();
+        return;
     }
     const hash = await bcrypt.hash(this.password,10);
     this.password = hash;
-    
-    return next();
-
 })
 
 userSchema.methods.comparePassword = async function(password){
+    console.log("running comparePassword",password,this.password);
+
     return await bcrypt.compare(password,this.password);
 }
 
