@@ -4,10 +4,12 @@ const jwt = require("jsonwebtoken")
 
 async function userRegisterController(req,res){
     const {email,password,name} = req.body;
+    console.log(email,password,name);
 
-    const isExists = userModel.findOne({
+    const isExists = await userModel.findOne({
         email:email
     })
+    console.log(isExists);
 
     if(isExists){
         return res.status(422).json({
@@ -30,13 +32,65 @@ async function userRegisterController(req,res){
     res.status(201).json({
         message:"user registered successfully",
         status:"success",
-        data:user
+        user:{
+            _id:user._id,
+            email:user.email,
+            name:user.name
+        },
+        token
     })
+
+
+}
+
+/**
+ * - user login controller
+ * -POST /api/v1/auth/login
+ * - Request Body - {email,password}
+ * - Response - {message,status,user,token}
+ */
+
+async function userLoginController(req,res){
+    const {email,password} = req.body;
+    console.log(email,password);
+    const user = await userModel.findOne({email}).select("+password");
+
+    if(!user){
+        return res.status(401).json({
+            message:"user not found",
+            status:"failed"
+        })
+    }
+
+    const isValidPasswd = await user.comparePassword(password);
+    console.log("isValidPasswd",isValidPasswd);
+
+    if(!isValidPasswd){
+        return res.status(401).json({
+            message:"invalide password",
+            status:"failed"
+        })
+    }
+
+    const token =jwt.sign({userId:user._id},process.env.JWT_SECRET,{expiresIn:"1d"});
+    res.cookie("token",token);
+    res.status(200).json({
+        message:"user logged in successfully",
+        status:"success",
+        user:{
+            _id:user._id,
+            email:user.email,
+            name:user.name
+        },
+        token
+    })
+
+
 
 
 }
 
 
 module.exports = {
-    userRegisterController
+    userRegisterController,userLoginController
 }
