@@ -3,7 +3,7 @@ const app = express();
 const cookieParser = require("cookie-parser");
 
 const authRouter = require("./routes/auth.routes");
-const accountRouter = require("./routes/account.routes");
+const accountRouter = require("./routes/account.route");
 
 
 
