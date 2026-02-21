@@ -55,11 +55,54 @@ async function createTransaction(req,res){
     });
 
     if(isTransactionAlreadyExists){
-        return res.status(409)
-        .json({
-            message:"Transaction already exists"
-        });
+        if (isTransactionAlreadyExists.status === "COMPLETED"){
+            return res.status(200)
+            .json({
+                message:"Transaction already processed",
+                transaction:isTransactionAlreadyExists
+            });
+        }
+        if (isTransactionAlreadyExists.status === "PENDING"){
+            return res.status(200)
+            .json({
+                message:"Transaction is still processing",
+            });
+        }
+
+        if (isTransactionAlreadyExists.status === "FAILED"){
+            return res.status(500)
+            .json({
+                message:"Transaction processing failed please retry",
+            });
+        }
+        if(isTransactionAlreadyExists.status === "REVERSED"){
+             return res.status(500)
+            .json({
+                message:"Transaction was reversed please retry",
+            });
+        }
+
     }
+
+    /**
+     * check account status
+     * 
+     */
+
+
+    if (fromUserAccount.status !== "ACTIVE" || toUserAccount.status !== "ACTIVE"){
+        return res.status(400)
+        .json({
+            message:"Both fromAccount and toAccount must be ACTIVE to process transaction"
+        });
+
+    }
+    /**
+     * derive sender balance from ledger
+     * 
+     */
+    
+
 
 
 
