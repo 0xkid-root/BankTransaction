@@ -153,7 +153,12 @@ async function createTransaction(req,res){
 
     await session.commitTransaction();
     await session.endSession();
+
+    /**
+     * send email notification
+     */
     
+
 
 
 
