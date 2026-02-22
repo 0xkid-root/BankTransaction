@@ -117,20 +117,18 @@ async function createTransaction(req,res){
      * create transaction pending
      * 
      */
+    let transaction;
 
     try{
-
-    
-
     const session = await mongoose.startSession();
     session.startTransaction();
     
     /**
      * startTransaction kay karta hai ke aap multiple operations ko transaction ke under kar sakte hain pure ek sath he complate hoga
-     * agar kisi bhi ek operation fail hoti hai toh sabhi operations rollback hote hain
+     * agar kisi bhi ek  operation fail hoti hai toh sabhi operations rollback hote hain
      */
 
-    const transaction = (await transactionModel([{
+     transaction = (await transactionModel([{
         fromAccount,
         toAccount,
         amount,
@@ -149,7 +147,7 @@ async function createTransaction(req,res){
 
         await (()=>{
         return new Promise((resolve)=>
-        setTimeout(resolve, 100*1000));
+        setTimeout(resolve, 15  *1000));
     })()
  
     const creditLedgerEntry = await ledgerModel.create([{
