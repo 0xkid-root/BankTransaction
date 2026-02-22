@@ -117,42 +117,70 @@ async function createTransaction(req,res){
      * create transaction pending
      * 
      */
+    let transaction;
 
+    try{
     const session = await mongoose.startSession();
     session.startTransaction();
     
     /**
      * startTransaction kay karta hai ke aap multiple operations ko transaction ke under kar sakte hain pure ek sath he complate hoga
-     * agar kisi bhi ek operation fail hoti hai toh sabhi operations rollback hote hain
+     * agar kisi bhi ek  operation fail hoti hai toh sabhi operations rollback hote hain
      */
 
-    const transaction = await transactionModel.create({
+     transaction = (await transactionModel([{
         fromAccount,
         toAccount,
         amount,
         idempotencyKey,
         status:"PENDING"
-    },{session})
+    }],{session}))[0]
 
-    const debitLedgerEntry = await ledgerModel.create({
+
+
+    const debitLedgerEntry = await ledgerModel.create([{
         account:fromAccount,
         amount:amount,
         transaction:transaction._id,
         type:"DEBIT"
-    },{session})
+    }],{session})
 
-    const creditLedgerEntry = await ledgerModel.create({
+        await (()=>{
+        return new Promise((resolve)=>
+        setTimeout(resolve, 15  *1000));
+    })()
+ 
+    const creditLedgerEntry = await ledgerModel.create([{
         account:toAccount,
         amount:amount,
         transaction:transaction._id,
         type:"CREDIT"
-    },{session}) 
+    }],{session}) 
 
-    transaction.status = "COMPLETED";
-    await transaction.save({session});
+    // transaction.status = "COMPLETED";
+    // await transaction.save({session});
+    await transactionModel.findOneAndUpdate(
+    {
+        _id:transaction._id,
+    },
+    {
+        status:"COMPLETED"
+    },
+    {session}
+
+)
 
     await session.commitTransaction();
     await session.endSession();
+
+    }catch(error){
+        return res.status(400).json({
+            message:"transaction is pending due to some issue ,please retry after some time!"
+        })
+
+    }
+        
+
 
     /**
      * send email notification
