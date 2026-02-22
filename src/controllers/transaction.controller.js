@@ -126,27 +126,27 @@ async function createTransaction(req,res){
      * agar kisi bhi ek operation fail hoti hai toh sabhi operations rollback hote hain
      */
 
-    const transaction = await transactionModel.create({
+    const transaction = new transactionModel({
         fromAccount,
         toAccount,
         amount,
         idempotencyKey,
         status:"PENDING"
-    },{session})
+    })
 
-    const debitLedgerEntry = await ledgerModel.create({
+    const debitLedgerEntry = await ledgerModel.create([{
         account:fromAccount,
         amount:amount,
         transaction:transaction._id,
         type:"DEBIT"
-    },{session})
+    }],{session})
 
-    const creditLedgerEntry = await ledgerModel.create({
+    const creditLedgerEntry = await ledgerModel.create([{
         account:toAccount,
         amount:amount,
         transaction:transaction._id,
         type:"CREDIT"
-    },{session}) 
+    }],{session}) 
 
     transaction.status = "COMPLETED";
     await transaction.save({session});
