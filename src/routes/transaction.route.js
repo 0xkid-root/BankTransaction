@@ -25,5 +25,4 @@ transactionRoutes.post('/system/initial-funds', authSystemUserMiddleware, create
 
 
 
-
 module.exports = transactionRoutes;
