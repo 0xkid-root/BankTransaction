@@ -19,7 +19,14 @@ const userSchema = new mongoose.Schema({
         required:[true,"Password is required for creating!"],
         minlength:[6,"password should contain more than 6 characters"],
         select:false//password will not be returned in the response if i m call in the user modal then not return to the password
+    },
+    systemUser:{
+        type:Boolean,
+        default:false,
+        immutable:true,
+        select:false//systemUser will not be returned in the response
     }
+
 },{
     timestamps:true
 })
