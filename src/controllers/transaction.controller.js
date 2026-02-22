@@ -118,6 +118,10 @@ async function createTransaction(req,res){
      * 
      */
 
+    try{
+
+    
+
     const session = await mongoose.startSession();
     session.startTransaction();
     
@@ -126,13 +130,15 @@ async function createTransaction(req,res){
      * agar kisi bhi ek operation fail hoti hai toh sabhi operations rollback hote hain
      */
 
-    const transaction = new transactionModel({
+    const transaction = (await transactionModel([{
         fromAccount,
         toAccount,
         amount,
         idempotencyKey,
         status:"PENDING"
-    })
+    }],{session}))[0]
+
+
 
     const debitLedgerEntry = await ledgerModel.create([{
         account:fromAccount,
@@ -141,6 +147,11 @@ async function createTransaction(req,res){
         type:"DEBIT"
     }],{session})
 
+        await (()=>{
+        return new Promise((resolve)=>
+        setTimeout(resolve, 100*1000));
+    })()
+ 
     const creditLedgerEntry = await ledgerModel.create([{
         account:toAccount,
         amount:amount,
@@ -148,11 +159,30 @@ async function createTransaction(req,res){
         type:"CREDIT"
     }],{session}) 
 
-    transaction.status = "COMPLETED";
-    await transaction.save({session});
+    // transaction.status = "COMPLETED";
+    // await transaction.save({session});
+    await transactionModel.findOneAndUpdate(
+    {
+        _id:transaction._id,
+    },
+    {
+        status:"COMPLETED"
+    },
+    {session}
+
+)
 
     await session.commitTransaction();
     await session.endSession();
+
+    }catch(error){
+        return res.status(400).json({
+            message:"transaction is pending due to some issue ,please retry after some time!"
+        })
+
+    }
+        
+
 
     /**
      * send email notification
