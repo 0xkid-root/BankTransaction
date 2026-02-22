@@ -4,6 +4,8 @@ const cookieParser = require("cookie-parser");
 
 const authRouter = require("./routes/auth.routes");
 const accountRouter = require("./routes/account.route");
+const transactionRoutes = require("./routes/transaction.route");
+
 
 
 
@@ -17,6 +19,8 @@ app.use(cookieParser());
 
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/account", accountRouter);
+app.use("/api/v1/transaction", transactionRoutes);
+
 
 
 
